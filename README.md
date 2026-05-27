@@ -14,6 +14,7 @@ Cette plateforme est un **outil de démonstration UI/UX et de recherche défensi
 - Tout usage de cet outil à des fins offensives, illégales ou malveillantes est **strictement interdit** et relève de la seule responsabilité de l'utilisateur.
 - Consultez les lois de votre pays relatives à la cybersécurité (en France : loi Godfrain, RGPD, directive NIS2).
 - Les liens en .onion ne sont pas les liens officiels.
+
 ---
 
 ## Présentation

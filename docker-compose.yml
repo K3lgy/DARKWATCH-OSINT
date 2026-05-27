@@ -1,7 +1,7 @@
 version: "3.9"
 
 # ─────────────────────────────────────────────────────────────
-# DARKWATCH OSINT Platform — Stack backend
+# DARKWATCH OSINT Platform — Stack complète
 # Usage : docker compose up -d
 # ─────────────────────────────────────────────────────────────
 
@@ -41,7 +41,7 @@ services:
     ports:
       - "127.0.0.1:9200:9200"
     healthcheck:
-      test: ["CMD-SHELL", "curl -s http://localhost:9200/_cluster/health | grep -q '\"status\":\"green\\|yellow\"'"]
+      test: ["CMD-SHELL", "curl -s http://localhost:9200/_cluster/health | grep -qE 'green|yellow'"]
       interval: 20s
       timeout: 10s
       retries: 5
@@ -61,6 +61,51 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  # ─── Ollama (LLM local) ────────────────────────────────────
+  ollama:
+    image: ollama/ollama
+    container_name: darkwatch_ollama
+    restart: unless-stopped
+    volumes:
+      - ollama_data:/root/.ollama
+    ports:
+      - "127.0.0.1:11434:11434"
+    # Pour GPU NVIDIA : décommentez les lignes suivantes
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:11434/api/tags || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 8
+      start_period: 30s
+
+  # ─── AI Worker ─────────────────────────────────────────────
+  ai_worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    container_name: darkwatch_ai_worker
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - OLLAMA_URL=http://ollama:11434
+      - OLLAMA_MODEL=${OLLAMA_MODEL:-mistral}
+      - REDIS_URL=redis://redis:6379
+      - DB_HOST=postgres
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      ollama:
+        condition: service_healthy
 
   # ─── Interface Web ─────────────────────────────────────────
   web:
@@ -82,4 +127,6 @@ volumes:
   es_data:
     driver: local
   redis_data:
+    driver: local
+  ollama_data:
     driver: local

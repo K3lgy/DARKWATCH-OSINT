@@ -53,3 +53,27 @@ SELECT
 FROM pages
 GROUP BY day
 ORDER BY day DESC;
+
+-- ─────────────────────────────────────────────────────────────
+-- Table des alertes IA (module AI Analyst)
+-- ─────────────────────────────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS ai_alerts (
+    id               SERIAL PRIMARY KEY,
+    source_url       TEXT,
+    source_title     TEXT,
+    summary          TEXT,
+    threat_type      TEXT,
+    risk_level       TEXT NOT NULL DEFAULT 'INFO',
+    confidence_score INTEGER,
+    raw_content      TEXT,
+    ai_analysis      JSONB,
+    created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_ai_alerts_risk    ON ai_alerts(risk_level);
+CREATE INDEX IF NOT EXISTS idx_ai_alerts_created ON ai_alerts(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_ai_alerts_type    ON ai_alerts(threat_type);
+-- Recherche full-text sur le résumé
+CREATE INDEX IF NOT EXISTS idx_ai_alerts_summary_fts
+    ON ai_alerts USING gin(to_tsvector('english', coalesce(summary, '')));

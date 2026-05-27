@@ -27,3 +27,13 @@ redis>=5.0.0
 # Export et utilitaires
 python-dotenv>=1.0.0
 tqdm>=4.65.0
+
+# ─── AI Analyst module ───────────────────────────────────────
+# (Ollama tourne en local via Docker — pas de SDK Python requis)
+# Les appels se font via requests (déjà listé ci-dessus)
+
+# Worker
+redis>=5.0.0
+
+# Validation / typage
+# (dataclasses stdlib — pas de dépendance externe)

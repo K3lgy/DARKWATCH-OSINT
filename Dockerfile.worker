@@ -1,0 +1,22 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Dépendances système minimales
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Dépendances Python
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Code source
+COPY analyzer/ ./analyzer/
+COPY workers/   ./workers/
+
+# Utilisateur non-root
+RUN useradd -m -u 1001 worker
+USER worker
+
+CMD ["python", "-m", "workers.ai_worker"]
