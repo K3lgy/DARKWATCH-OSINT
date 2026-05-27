@@ -1,0 +1,67 @@
+{
+  "_comment": "Fichier de configuration de surveillance DARKWATCH. NE PAS committer ce fichier avec de vraies données. Renommez-le watchlist.json et adaptez à votre contexte.",
+  "version": "1.0",
+  "last_updated": "2025-01-01T00:00:00Z",
+
+  "keywords": [
+    "votre-domaine.com",
+    "votre@email.com",
+    "data breach",
+    "ransomware",
+    "credentials leak"
+  ],
+
+  "hashes": [
+    {
+      "type": "sha256",
+      "value": "abc123def456...",
+      "description": "Hash d'un document confidentiel"
+    },
+    {
+      "type": "md5",
+      "value": "def456abc123...",
+      "description": "Hash d'un fichier sensible"
+    }
+  ],
+
+  "domains": [
+    "votre-domaine.com",
+    "sous-domaine.votre-domaine.com"
+  ],
+
+  "emails": [
+    "admin@votre-domaine.com",
+    "contact@votre-domaine.com"
+  ],
+
+  "ip_ranges": [
+    "192.168.1.0/24"
+  ],
+
+  "alert_threshold": "medium",
+
+  "alert_levels": {
+    "critical": {
+      "description": "Données confirmées exposées ou systèmes compromis",
+      "notify": ["email", "sms", "slack"]
+    },
+    "high": {
+      "description": "Mention active sur forum underground ou site de leaks",
+      "notify": ["email", "slack"]
+    },
+    "medium": {
+      "description": "Mention périphérique ou contexte ambigu",
+      "notify": ["slack"]
+    },
+    "info": {
+      "description": "Activité de fond, pas de risque immédiat",
+      "notify": []
+    }
+  },
+
+  "excluded_sources": [],
+
+  "crawl_depth": 2,
+  "request_timeout": 30,
+  "circuit_rotation_interval": 600
+}

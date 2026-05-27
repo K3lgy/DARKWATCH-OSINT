@@ -1,0 +1,29 @@
+# DARKWATCH Crawler — Dépendances Python
+# Installation : pip install -r crawler/requirements.txt
+
+# Réseau & proxy Tor
+requests[socks]>=2.31.0
+urllib3>=2.0.0
+
+# Contrôle du daemon Tor (rotation de circuit)
+stem>=1.8.2
+
+# Crawl avancé (optionnel — pour le module Scrapy)
+scrapy>=2.11.0
+scrapy-rotating-proxies>=0.6.2
+
+# Parsing HTML
+beautifulsoup4>=4.12.0
+lxml>=4.9.0
+
+# Extraction d'entités
+# spacy>=3.7.0  # Optionnel — NER (décommentez si installé)
+
+# Stockage
+psycopg2-binary>=2.9.0
+elasticsearch>=8.0.0
+redis>=5.0.0
+
+# Export et utilitaires
+python-dotenv>=1.0.0
+tqdm>=4.65.0

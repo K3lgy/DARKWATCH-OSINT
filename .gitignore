@@ -1,0 +1,82 @@
+# ─── Environnement Python ───────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+.Python
+env/
+venv/
+.venv/
+.env
+*.egg-info/
+dist/
+build/
+
+# ─── Node.js ─────────────────────────────────────────────────
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+.npm
+
+# ─── Variables d'environnement (SECRETS) ────────────────────
+.env
+.env.local
+.env.*.local
+*.env
+
+# ─── Base de données ─────────────────────────────────────────
+*.sqlite
+*.db
+*.sql.bak
+pg_data/
+elasticsearch_data/
+redis_data/
+
+# ─── Logs ────────────────────────────────────────────────────
+logs/
+*.log
+crawl_logs/
+
+# ─── Données crawl (sensibles) ──────────────────────────────
+crawler/output/
+crawler/cache/
+crawler/data/
+data/raw/
+data/processed/
+
+# ─── Rapports générés ────────────────────────────────────────
+reports/output/
+*.pdf
+
+# ─── Fichiers watchlist personnels ──────────────────────────
+watchlist.json
+watchlist.local.json
+
+# ─── OS ──────────────────────────────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# ─── IDE / Éditeurs ──────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ─── Docker ──────────────────────────────────────────────────
+docker-compose.override.yml
+.docker/
+
+# ─── Certificats et clés ─────────────────────────────────────
+*.pem
+*.key
+*.crt
+*.p12
+tor_keys/

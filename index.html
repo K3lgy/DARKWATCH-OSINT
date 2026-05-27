@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DARKWATCH — OSINT CyberSecurity Platform</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#080c0e;--bg2:#0d1417;--bg3:#111a1e;
+  --border:#1a2f38;--border2:#1e3a46;
+  --accent:#00c8a8;--accent2:#007a67;--accent3:#00e5c4;
+  --red:#ff3b4e;--amber:#f5a623;--blue:#2196f3;--purple:#9c27b0;--green:#22c55e;
+  --text:#c8d8dc;--text2:#6b8a92;--text3:#3d5a62;
+  --mono:'Share Tech Mono',monospace;
+  --raj:'Rajdhani',sans-serif;
+}
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--text);font-family:var(--mono);overflow:hidden}
+body::after{content:'';position:fixed;top:0;left:0;width:100%;height:100%;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,200,168,.012) 2px,rgba(0,200,168,.012) 4px);pointer-events:none;z-index:9999}
+
+/* HEADER */
+.header{background:var(--bg2);border-bottom:1px solid var(--border2);padding:10px 20px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-icon{width:30px;height:30px;border:1.5px solid var(--accent);border-radius:4px;display:flex;align-items:center;justify-content:center;color:var(--accent);font-size:15px}
+.logo-text{font-family:var(--raj);font-size:17px;font-weight:700;color:var(--accent);letter-spacing:3px}
+.logo-sub{font-size:8px;color:var(--text2);letter-spacing:4px;margin-top:-2px}
+.header-status{display:flex;align-items:center;gap:18px;font-size:10px}
+.status-pill{display:flex;align-items:center;gap:5px;color:var(--text2)}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 2s infinite}
+.dot.amber{background:var(--amber)}.dot.red{background:var(--red)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* LAYOUT */
+.app{display:flex;height:calc(100vh - 50px)}
+.sidebar{width:195px;min-width:195px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:14px 0;overflow-y:auto}
+.sidebar-section{margin-bottom:18px}
+.sidebar-label{font-size:8px;letter-spacing:3px;color:var(--text3);padding:0 14px 7px;text-transform:uppercase}
+.nav-item{display:flex;align-items:center;gap:9px;padding:8px 14px;cursor:pointer;font-size:11px;color:var(--text2);border-left:2px solid transparent;transition:all .12s;user-select:none}
+.nav-item:hover{color:var(--accent);background:rgba(0,200,168,.05)}
+.nav-item.active{color:var(--accent);background:rgba(0,200,168,.08);border-left-color:var(--accent)}
+.nav-item i{font-size:14px;width:15px}
+.nav-badge{margin-left:auto;font-size:8px;background:rgba(0,200,168,.15);color:var(--accent);padding:1px 5px;border-radius:2px}
+.nav-badge.red{background:rgba(255,59,78,.15);color:var(--red)}
+
+/* MAIN */
+.main{flex:1;overflow:hidden;display:flex;flex-direction:column}
+.topbar{background:var(--bg3);border-bottom:1px solid var(--border);padding:10px 18px;display:flex;align-items:center;gap:10px;flex-shrink:0}
+.search-wrap{flex:1;display:flex;align-items:center;background:var(--bg);border:1px solid var(--border2);border-radius:3px;padding:0 10px;gap:7px}
+.search-wrap i{color:var(--text3);font-size:14px}
+.search-input{flex:1;background:none;border:none;outline:none;font-family:var(--mono);font-size:11px;color:var(--text);padding:8px 0}
+.search-input::placeholder{color:var(--text3)}
+.btn{font-family:var(--mono);font-size:10px;padding:7px 12px;border-radius:3px;cursor:pointer;border:1px solid var(--accent2);background:rgba(0,200,168,.1);color:var(--accent);transition:all .12s;letter-spacing:1px;white-space:nowrap}
+.btn:hover{background:rgba(0,200,168,.2)}
+.btn.danger{border-color:rgba(255,59,78,.4);background:rgba(255,59,78,.08);color:var(--red)}
+.btn.danger:hover{background:rgba(255,59,78,.15)}
+.btn.sm{font-size:9px;padding:4px 9px}
+
+/* CONTENT */
+.content{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:14px}
+.view{display:none;flex-direction:column;gap:14px}
+.view.active{display:flex}
+
+/* METRICS */
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.metric-card{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:12px 14px}
+.metric-label{font-size:8px;letter-spacing:2px;color:var(--text3);margin-bottom:7px}
+.metric-value{font-size:22px;font-weight:500;color:var(--accent);font-family:var(--raj)}
+.metric-delta{font-size:9px;color:var(--text2);margin-top:3px}
+.metric-delta.up{color:var(--green)}.metric-delta.down{color:var(--red)}
+
+/* PANELS */
+.panel-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.panel{background:var(--bg2);border:1px solid var(--border);border-radius:4px;overflow:hidden}
+.panel.full{grid-column:1/-1}
+.panel-header{padding:9px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:rgba(0,0,0,.2)}
+.panel-title{font-size:9px;letter-spacing:3px;color:var(--text2);text-transform:uppercase;display:flex;align-items:center;gap:7px}
+.panel-title i{color:var(--accent);font-size:13px}
+.panel-body{padding:12px 14px}
+
+/* BADGES */
+.badge{display:inline-block;font-size:8px;padding:2px 6px;border-radius:2px;letter-spacing:1px}
+.badge.green{background:rgba(34,197,94,.12);color:var(--green)}
+.badge.red{background:rgba(255,59,78,.12);color:var(--red)}
+.badge.amber{background:rgba(245,166,35,.12);color:var(--amber)}
+.badge.blue{background:rgba(33,150,243,.12);color:var(--blue)}
+.badge.gray{background:rgba(107,138,146,.12);color:var(--text2)}
+.badge.purple{background:rgba(156,39,176,.12);color:#ce93d8}
+.badge.live{background:rgba(0,200,168,.12);color:var(--accent)}
+
+/* TABLE */
+.data-table{width:100%;border-collapse:collapse;font-size:10px}
+.data-table th{text-align:left;color:var(--text3);font-size:8px;letter-spacing:2px;padding:0 0 8px;border-bottom:1px solid var(--border)}
+.data-table td{padding:8px 0;border-bottom:1px solid rgba(26,47,56,.5);vertical-align:middle}
+.data-table tr:last-child td{border-bottom:none}
+.data-table td:not(:last-child){padding-right:12px}
+.onion-addr{color:var(--accent);font-size:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:180px}
+.site-name{color:var(--text);font-family:var(--raj);font-size:12px;font-weight:500}
+.risk-bar{width:55px;height:3px;background:var(--border);border-radius:2px;display:inline-block;vertical-align:middle}
+.risk-fill{height:100%;border-radius:2px}
+
+/* TERMINAL */
+.terminal{font-size:10px;line-height:2;overflow-y:auto}
+.log-line{display:flex;gap:9px;align-items:flex-start}
+.log-time{color:var(--text3);min-width:58px;flex-shrink:0}
+.log-level{min-width:46px;flex-shrink:0}
+.log-msg{color:var(--text2)}
+.log-msg.accent{color:var(--accent)}.log-msg.red{color:var(--red)}.log-msg.amber{color:var(--amber)}
+
+/* CIRCUIT */
+.circuit-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(26,47,56,.4);font-size:10px}
+.circuit-item:last-child{border-bottom:none}
+.circuit-num{width:18px;height:18px;border-radius:50%;border:1px solid var(--accent);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:8px;flex-shrink:0}
+.circuit-country{color:var(--text);font-family:var(--raj);font-size:12px}
+.circuit-ip{color:var(--text3);font-size:9px}
+
+/* PROGRESS */
+.progress-row{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+.progress-label{font-size:10px;color:var(--text2);min-width:95px}
+.progress-bar{flex:1;height:3px;background:var(--border);border-radius:2px}
+.progress-fill{height:100%;border-radius:2px;background:var(--accent)}
+.progress-val{font-size:9px;color:var(--text3);min-width:28px;text-align:right}
+
+/* TAGS */
+.tag-pill{display:inline-flex;align-items:center;gap:3px;font-size:8px;padding:2px 7px;border-radius:2px;background:rgba(0,200,168,.08);border:1px solid rgba(0,200,168,.15);color:var(--accent);cursor:pointer;transition:all .1s;user-select:none}
+.tag-pill:hover{background:rgba(0,200,168,.18)}
+.tag-pill.danger{background:rgba(255,59,78,.07);border-color:rgba(255,59,78,.2);color:var(--red)}
+
+/* ALERT CARD */
+.alert-card{padding:13px;border-radius:4px;margin-bottom:10px}
+.alert-card:last-child{margin-bottom:0}
+.alert-card.crit{border:1px solid rgba(255,59,78,.3);background:rgba(255,59,78,.05)}
+.alert-card.high{border:1px solid rgba(245,166,35,.3);background:rgba(245,166,35,.05)}
+.alert-card.med{border:1px solid rgba(33,150,243,.3);background:rgba(33,150,243,.05)}
+.alert-title{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.alert-name{font-family:var(--raj);font-size:13px;font-weight:600}
+.alert-name.red{color:var(--red)}.alert-name.amber{color:var(--amber)}.alert-name.blue{color:var(--blue)}
+.alert-desc{font-size:10px;color:var(--text2);line-height:1.6}
+.alert-meta{font-size:9px;color:var(--text3);margin-top:5px}
+
+/* RESULT ITEM */
+.result-item{padding:10px 0;border-bottom:1px solid rgba(26,47,56,.5)}
+.result-item:last-child{border-bottom:none}
+.result-title{font-family:var(--raj);font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px}
+.result-url{font-size:9px;color:var(--accent);margin-bottom:4px}
+.result-snippet{font-size:10px;color:var(--text2);line-height:1.7}
+.result-meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:5px}
+
+/* MINI STAT */
+.mini-stat{padding:10px 12px;background:var(--bg);border:1px solid var(--border);border-radius:4px;text-align:center}
+.mini-stat-label{font-size:8px;letter-spacing:2px;color:var(--text3);margin-bottom:5px}
+.mini-stat-val{font-size:20px;font-family:var(--raj);color:var(--accent)}
+
+/* INFO ROW */
+.info-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(26,47,56,.4);font-size:10px}
+.info-row:last-child{border-bottom:none}
+.info-key{color:var(--text3)}
+.info-val{color:var(--text)}
+
+/* CRAWLER JOB */
+.crawler-job{margin-bottom:10px}
+.crawler-job-header{display:flex;justify-content:space-between;font-size:9px;margin-bottom:3px}
+.crawler-job-url{color:var(--accent)}
+.crawler-job-pct{color:var(--text3)}
+
+/* ENTITY CARD */
+.entity-card{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(26,47,56,.4);font-size:10px}
+.entity-card:last-child{border-bottom:none}
+.entity-icon{width:28px;height:28px;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.entity-type{font-size:8px;letter-spacing:2px;color:var(--text3)}
+.entity-val{color:var(--text);font-size:11px}
+.entity-source{font-size:9px;color:var(--text3)}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:3px;height:3px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+
+/* CURSOR BLINK */
+.cursor::after{content:'█';animation:blink 1s step-end infinite;color:var(--accent)}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+
+/* GRAPH BARS */
+.hbar-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:10px}
+.hbar-label{color:var(--text2);min-width:90px}
+.hbar-track{flex:1;height:14px;background:rgba(26,47,56,.6);border-radius:2px;position:relative;overflow:hidden}
+.hbar-fill{height:100%;border-radius:2px;display:flex;align-items:center;padding-left:6px;font-size:8px;font-weight:500;transition:width 1s ease}
+.hbar-val{min-width:32px;text-align:right;color:var(--text3)}
+
+/* NETWORK NODE VIZ */
+.node-viz{position:relative;width:100%;height:200px;overflow:hidden}
+.node-viz svg{width:100%;height:100%}
+
+/* TABS */
+.tabs{display:flex;border-bottom:1px solid var(--border);margin:-12px -14px 12px}
+.tab{padding:8px 14px;font-size:9px;letter-spacing:2px;cursor:pointer;color:var(--text3);border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .12s;user-select:none}
+.tab:hover{color:var(--text2)}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+/* SEARCH EMPTY */
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px;color:var(--text3);font-size:11px;gap:10px}
+.empty-state i{font-size:32px;color:var(--border2)}
+
+/* FADE IN */
+@keyframes fadeIn{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:translateY(0)}}
+.view.active>*{animation:fadeIn .25s ease}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="logo">
+    <div class="logo-icon"><i class="ti ti-eye"></i></div>
+    <div>
+      <div class="logo-text">DARKWATCH</div>
+      <div class="logo-sub">OSINT · DARKWEB INTELLIGENCE PLATFORM</div>
+    </div>
+  </div>
+  <div class="header-status">
+    <div class="status-pill"><div class="dot"></div> TOR CIRCUIT ACTIF</div>
+    <div class="status-pill"><div class="dot amber"></div> 3 ALERTES</div>
+    <div class="status-pill"><div class="dot red" id="crawl-dot"></div> <span id="crawl-status">CRAWL EN COURS</span></div>
+    <div class="status-pill" style="color:var(--text3)">v2.4.1 · AES-256</div>
+  </div>
+</div>
+
+<div class="app">
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Principal</div>
+      <div class="nav-item active" data-view="dashboard"><i class="ti ti-layout-dashboard"></i> Tableau de bord</div>
+      <div class="nav-item" data-view="search"><i class="ti ti-search"></i> Recherche OSINT</div>
+      <div class="nav-item" data-view="sites"><i class="ti ti-world"></i> Sites .onion <span class="nav-badge">147</span></div>
+      <div class="nav-item" data-view="monitor"><i class="ti ti-activity"></i> Surveillance</div>
+      <div class="nav-item" data-view="alerts"><i class="ti ti-bell"></i> Alertes <span class="nav-badge red">3</span></div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Outils</div>
+      <div class="nav-item" data-view="tor"><i class="ti ti-route"></i> Circuit Tor</div>
+      <div class="nav-item" data-view="crawler"><i class="ti ti-bug"></i> Crawler</div>
+      <div class="nav-item" data-view="entities"><i class="ti ti-database"></i> Entités</div>
+      <div class="nav-item" data-view="logs"><i class="ti ti-terminal-2"></i> Logs système</div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Rapports</div>
+      <div class="nav-item" data-view="report"><i class="ti ti-file-analytics"></i> Rapport OSINT</div>
+      <div class="nav-item" data-view="settings"><i class="ti ti-settings"></i> Paramètres</div>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <div class="main">
+    <!-- TOPBAR -->
+    <div class="topbar">
+      <div class="search-wrap">
+        <i class="ti ti-terminal-2"></i>
+        <input class="search-input cursor" id="main-search" type="text" placeholder="Rechercher : mot-clé, adresse .onion, hash SHA256, domaine...">
+      </div>
+      <button class="btn" onclick="runSearch()"><i class="ti ti-search" style="margin-right:4px"></i>LANCER</button>
+      <button class="btn danger" onclick="resetAll()"><i class="ti ti-x" style="margin-right:4px"></i>RESET</button>
+    </div>
+
+    <div class="content" id="content-area">
+
+      <!-- ═══════════════ DASHBOARD ═══════════════ -->
+      <div class="view active" id="view-dashboard">
+        <div class="metrics">
+          <div class="metric-card"><div class="metric-label">SITES .ONION INDEXÉS</div><div class="metric-value" id="m1">14 782</div><div class="metric-delta up">↑ +234 aujourd'hui</div></div>
+          <div class="metric-card"><div class="metric-label">PAGES CRAWLÉES</div><div class="metric-value" id="m2">289 K</div><div class="metric-delta up">↑ actif en ce moment</div></div>
+          <div class="metric-card"><div class="metric-label">MENTIONS DÉTECTÉES</div><div class="metric-value" id="m3">1 349</div><div class="metric-delta down">↓ 3 critiques actives</div></div>
+          <div class="metric-card"><div class="metric-label">NŒUDS TOR ACTIFS</div><div class="metric-value">7 411</div><div class="metric-delta" style="color:var(--text2)">Circuit: 3 relais</div></div>
+        </div>
+        <div class="panel-grid">
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title"><i class="ti ti-world-www"></i> SITES .ONION RÉCENTS</div>
+              <span class="badge live">LIVE</span>
+            </div>
+            <div class="panel-body">
+              <table class="data-table">
+                <thead><tr><th>NOM</th><th>ADRESSE</th><th>CAT.</th><th>STATUT</th></tr></thead>
+                <tbody>
+                  <tr><td><div class="site-name">SecureDrop</div></td><td><div class="onion-addr">sdolvtfhatvsysc6l34d65ymdwxcujausv78am5ajewhirwnlzknswyd.onion</div></td><td><span class="badge blue">PRESSE</span></td><td><span class="badge green">EN LIGNE</span></td></tr>
+                  <tr><td><div class="site-name">DarkMarket</div></td><td><div class="onion-addr">darkmarket2xe3h5k7anon.onion</div></td><td><span class="badge red">MARCHÉ</span></td><td><span class="badge red">HORS LIGNE</span></td></tr>
+                  <tr><td><div class="site-name">TorProject</div></td><td><div class="onion-addr">2gzyxa5ihm7nsggfxnu52rck2vv4rvmdlkiu3zzui5du4xyclen53wid.onion</div></td><td><span class="badge green">OFFICIEL</span></td><td><span class="badge green">EN LIGNE</span></td></tr>
+                  <tr><td><div class="site-name">LeakBase #7</div></td><td><div class="onion-addr">leakbasexxx7anon92sample.onion</div></td><td><span class="badge purple">FUITE</span></td><td><span class="badge amber">INSTABLE</span></td></tr>
+                  <tr><td><div class="site-name">CryptoBBS</div></td><td><div class="onion-addr">cryptobbs3xanon11sample.onion</div></td><td><span class="badge gray">FORUM</span></td><td><span class="badge green">EN LIGNE</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title"><i class="ti ti-route"></i> CIRCUIT TOR ACTUEL</div>
+              <button class="btn sm" onclick="newCircuit()">NOUVEAU CIRCUIT</button>
+            </div>
+            <div class="panel-body">
+              <div style="font-size:9px;color:var(--text3);margin-bottom:10px">YOU → GUARD → MIDDLE → EXIT → DESTINATION</div>
+              <div class="circuit-item">
+                <div class="circuit-num">G</div>
+                <div style="flex:1"><div class="circuit-country">🇩🇪 Allemagne — Guard Node</div><div class="circuit-ip" id="d-ip1">185.220.101.47</div></div>
+                <span style="font-size:9px;color:var(--text2)" id="d-lat1">42 ms</span>
+              </div>
+              <div class="circuit-item">
+                <div class="circuit-num">M</div>
+                <div style="flex:1"><div class="circuit-country" id="d-mid">🇳🇱 Pays-Bas — Middle Node</div><div class="circuit-ip" id="d-ip2">encrypted → 104.244.76.13</div></div>
+                <span style="font-size:9px;color:var(--text2)" id="d-lat2">88 ms</span>
+              </div>
+              <div class="circuit-item">
+                <div class="circuit-num">E</div>
+                <div style="flex:1"><div class="circuit-country" id="d-exit">🇸🇪 Suède — Exit Node</div><div class="circuit-ip" id="d-ip3">encrypted → 185.100.87.202</div></div>
+                <span style="font-size:9px;color:var(--text2)" id="d-lat3">134 ms</span>
+              </div>
+              <div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--border);font-size:9px;color:var(--text3);display:flex;justify-content:space-between">
+                <span>Latence totale: <span style="color:var(--accent)" id="d-total">264 ms</span></span>
+                <span>Chiffrement: <span style="color:var(--accent)">AES-256-CTR</span></span>
+              </div>
+            </div>
+          </div>
+          <div class="panel full">
+            <div class="panel-header">
+              <div class="panel-title"><i class="ti ti-terminal-2"></i> LOG SYSTÈME EN TEMPS RÉEL</div>
+              <div style="display:flex;gap:8px"><span class="badge live">LIVE</span><button class="btn sm" onclick="clearLog('dash-log')">EFFACER</button></div>
+            </div>
+            <div class="panel-body"><div class="terminal" id="dash-log" style="max-height:150px"></div></div>
+          </div>
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title"><i class="ti ti-tag"></i> MOTS-CLÉS SURVEILLÉS</div>
+              <button class="btn sm" onclick="addKeyword()">+ AJOUTER</button>
+            </div>
+            <div class="panel-body">
+              <div id="keyword-container" style="display:flex;flex-wrap:wrap;gap:7px">
+                <span class="tag-pill"><i class="ti ti-eye"></i> credentials</span>
+                <span class="tag-pill"><i class="ti ti-eye"></i> data breach</span>
+                <span class="tag-pill"><i class="ti ti-eye"></i> ransomware</span>
+                <span class="tag-pill"><i class="ti ti-eye"></i> zero-day</span>
+                <span class="tag-pill"><i class="ti ti-eye"></i> exploit kit</span>
+                <span class="tag-pill"><i class="ti ti-eye"></i> phishing kit</span>
+                <span class="tag-pill danger"><i class="ti ti-alert-triangle"></i> [TARGET]</span>
+              </div>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-header"><div class="panel-title"><i class="ti ti-chart-bar"></i> COUVERTURE PAR CATÉGORIE</div></div>
+            <div class="panel-body">
+              <div class="hbar-row"><span class="hbar-label">Forums & Chats</span><div class="hbar-track"><div class="hbar-fill" style="width:82%;background:var(--accent);color:#004a3e">82%</div></div><span class="hbar-val">82%</span></div>
+              <div class="hbar-row"><span class="hbar-label">Services</span><div class="hbar-track"><div class="hbar-fill" style="width:91%;background:var(--accent);color:#004a3e">91%</div></div><span class="hbar-val">91%</span></div>
+              <div class="hbar-row"><span class="hbar-label">Marchés</span><div class="hbar-track"><div class="hbar-fill" style="width:67%;background:var(--amber);color:#5a3800">67%</div></div><span class="hbar-val">67%</span></div>
+              <div class="hbar-row"><span class="hbar-label">Fuites (Leaks)</span><div class="hbar-track"><div class="hbar-fill" style="width:54%;background:var(--red);color:#5a000a">54%</div></div><span class="hbar-val">54%</span></div>
+              <div class="hbar-row"><span class="hbar-label">Presse / Médias</span><div class="hbar-track"><div class="hbar-fill" style="width:45%;background:var(--blue);color:#00275a">45%</div></div><span class="hbar-val">45%</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════════ SEARCH ═══════════════ -->
+      <div class="view" id="view-search">
+        <div class="panel full">
+          <div class="panel-header">
+            <div class="panel-title"><i class="ti ti-search"></i> RÉSULTATS OSINT — <span id="search-query-label" style="color:var(--accent)">EN ATTENTE</span></div>
+            <span class="badge amber" id="result-count-badge">0 résultats</span>
+          </div>
+          <div class="panel-body" id="search-results-body">
+            <div class="empty-state"><i class="ti ti-search"></i>Lancez une recherche dans la barre ci-dessus pour obtenir des résultats.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════════ SITES ═══════════════ -->
+      <div class="view" id="view-sites">
+        <div class="panel full">
+          <div class="panel-header">
+            <div class="panel-title"><i class="ti ti-world"></i> ANNUAIRE DES SITES .ONION</div>
+            <div style="display:flex;gap:6px;align-items:center">
+              <select id="cat-filter" onchange="filterSites()" style="font-family:var(--mono);font-size:9px;background:var(--bg);border:1px solid var(--border2);color:var(--text2);padding:3px 7px;border-radius:3px">
+                <option value="">TOUTES CATÉGORIES</option>
+                <option value="PRESSE">PRESSE</option>
+                <option value="FORUM">FORUM</option>
+                <option value="MARCHÉ">MARCHÉ</option>
+                <option value="FUITE">FUITE</option>
+                <option value="MOTEUR">MOTEUR</option>
+                <option value="OFFICIEL">OFFICIEL</option>
+                <option value="EXPLOIT">EXPLOIT</option>
+                <option value="RANSOMWARE">RANSOMWARE</option>
+              </select>
+              <span class="badge live" id="sites-count">147 sites</span>
+            </div>
+          </div>
+          <div class="panel-body">
+            <table class="data-table" id="sites-table">
+              <thead><tr><th>NOM</th><th>ADRESSE .ONION</th><th>CATÉGORIE</th><th>STATUT</th><th>RISQUE</th><th>DERNIÈRE VUE</th></tr></thead>
+              <tbody id="sites-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════════ MONITOR ═══════════════ -->
+      <div class="view" id="view-monitor">
+        <div class="metrics" style="grid-template-columns:repeat(3,1fr)">
+          <div class="metric-card"><div class="metric-label">CIBLES SURVEILLÉES</div><div class="metric-value">24</div><div class="metric-delta up">↑ 3 nouvelles ce mois</div></div>
+          <div class="metric-card"><div class="metric-label">MENTIONS (7 JOURS)</div><div class="metric-value">1 893</div><div class="metric-delta down">↓ +12% vs semaine préc.</div></div>
+          <div class="metric-card"><div class="metric-label">ALERTES EN COURS</div><div class="metric-value" style="color:var(--red)">3</div><div class="metric-delta down">↓ 2 critiques</div></div>
+        </div>
+        <div class="panel full">
+          <div class="panel-header">
+            <div class="panel-title"><i class="ti ti-activity"></i> TABLEAU DE SURVEILLANCE</div>
+            <button class="btn sm" onclick="addMonitorTarget()">+ CIBLE</button>
+          </div>
+          <div class="panel-body">
+            <table class="data-table">
+              <thead><tr><th>CIBLE</th><th>TYPE</th><th>DERNIÈRE MENTION</th><th>TOTAL</th><th>SOURCES</th><th>STATUT</th></tr></thead>
+              <tbody id="monitor-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="panel-grid">
+          <div class="panel">
+            <div class="panel-header"><div class="panel-title"><i class="ti ti-chart-line"></i> ACTIVITÉ (7 JOURS)</div></div>
+            <div class="panel-body">
+              <svg viewBox="0 0 320 100" style="width:100%;height:100px">
+                <defs><linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#00c8a8" stop-opacity=".3"/><stop offset="100%" stop-color="#00c8a8" stop-opacity="0"/></linearGradient></defs>
+                <polyline points="10,80 55,60 100,70 145,40 190,55 235,25 310,35" fill="none" stroke="var(--accent)" stroke-width="1.5"/>
+                <polygon points="10,80 55,60 100,70 145,40 190,55 235,25 310,35 310,100 10,100" fill="url(#chartGrad)"/>
+                <line x1="10" y1="95" x2="310" y2="95" stroke="var(--border)" stroke-width=".5"/>
+                <text x="10" y="110" fill="#3d5a62" font-size="8" font-family="Share Tech Mono">Lun</text>
+                <text x="55" y="110" fill="#3d5a62" font-size="8" font-family="Share Tech Mono">Mar</text>
+                <text x="100" y="110" fill="#3d5a62" font-size="8" font-family="Share Tech Mono">Mer</text>
+                <text x="145" y="110" fill="#3d5a62" font-size="8" font-family="Share Tech Mono">Jeu</text>
+                <text x="190" y="110" fill="#3d5a62" font-size="8" font-family="Share Tech Mono">Ven</text>
+                <text x="235" y="110" fill="#3d5a62" font-size="8" font-family="Share Tech Mono">Sam</text>
+                <text x="295" y="110" fill="#3d5a62" font-size="8" font-family="Share Tech Mono">Dim</text>
+              </svg>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-header"><div class="panel-title"><i class="ti ti-tag"></i> MOTS-CLÉS — FRÉQUENCE</div></div>
+            <div class="panel-body">
+              <div class="progress-row"><span class="progress-label">ransomware</span><div class="progress-bar"><div class="progress-fill" style="width:95%"></div></div><span class="progress-val">1 247</span></div>
+              <div class="progress-row"><span class="progress-label">data breach</span><div class="progress-bar"><div class="progress-fill" style="width:70%"></div></div><span class="progress-val">847</span></div>
+              <div class="progress-row"><span class="progress-label">credentials</span><div class="progress-bar"><div class="progress-fill" style="width:58%"></div></div><span class="progress-val">289</span></div>
+              <div class="progress-row"><span class="progress-label">zero-day</span><div class="progress-bar"><div class="progress-fill" style="width:28%;background:var(--amber)"></div></div><span class="progress-val">44</span></div>
+              <div class="progress-row"><span class="progress-label">phishing kit</span><div class="progress-bar"><div class="progress-fill" style="width:18%;background:var(--amber)"></div></div><span class="progress-val">22</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════════ ALERTS ═══════════════ -->
+      <div class="view" id="view-alerts">
+        <div class="panel full">
+          <div class="panel-header">
+            <div class="panel-title"><i class="ti ti-bell"></i> ALERTES ACTIVES</div>
+            <div style="display:flex;gap:6px">
+              <span class="badge red">3 CRITIQUES</span>
+              <button class="btn sm" onclick="markAllRead()">TOUT LIRE</button>
+            </div>
+          </div>
+          <div class="panel-body" id="alerts-body"></div>
+        </div>
+        <div class="panel full">
+          <div class="panel-header"><div class="panel-title"><i class="ti ti-history"></i> HISTORIQUE DES ALERTES (30 JOURS)</div></div>
+          <div class="panel-body">
+            <table class="data-table">
+              <thead><tr><th>HORODATAGE</th><th>TYPE</th><th>SOURCE</th><th>DESCRIPTION</th><th>CRITICITÉ</th></tr></thead>
+              <tbody>
+                <tr><td style="color:var(--text3)">2025-06-14 14:22</td><td><span class="badge gray">FUITE</span></td><td style="color:var(--accent);font-size:9px">leakbase[...]92.onion</td><td style="color:var(--text2)">Mention de "[TARGET]" dans base credentials</td><td><span class="badge red">CRITIQUE</span></td></tr>
+                <tr><td style="color:var(--text3)">2025-06-14 13:55</td><td><span class="badge gray">EXPLOIT</span></td><td style="color:var(--accent);font-size:9px">0day7yxaq2[...].onion</td><td style="color:var(--text2)">CVE-2024-XXXX en vente — 50 000 XMR</td><td><span class="badge blue">MOYENNE</span></td></tr>
+                <tr><td style="color:var(--text3)">2025-06-14 11:30</td><td><span class="badge gray">RANSOMWARE</span></td><td style="color:var(--accent);font-size:9px">ransomhubleak[...].onion</td><td style="color:var(--text2)">Groupe "BlackSun" — 12 nouvelles victimes publiées</td><td><span class="badge amber">HAUTE</span></td></tr>
+                <tr><td style="color:var(--text3)">2025-06-13 09:14</td><td><span class="badge gray">FUITE</span></td><td style="color:var(--accent);font-size:9px">dread[...].onion</td><td style="color:var(--text2)">Base de données clients publiée — secteur finance</td><td><span class="badge red">CRITIQUE</span></td></tr>
+                <tr><td style="color:var(--text3)">2025-06-12 22:07</td><td><span class="badge gray">FORUM</span></td><td style="color:var(--accent);font-size:9px">cryptobbs[...].onion</td><td style="color:var(--text2)">Discussion sur vecteur d'attaque ciblé</td><td><span class="badge amber">HAUTE</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════════ TOR ═══════════════ -->
+      <div class="view" id="view-tor">
+        <div class="metrics" style="grid-template-columns:repeat(4,1fr)">
+          <div class="metric-card"><div class="metric-label">IP SORTANTE</div><div class="metric-value" style="font-size:14px" id="tor-exit-ip">185.100.87.202</div><div class="metric-delta">Suède · AS48854</div></div>
+          <div class="metric-card"><div class="metric-label">LATENCE TOTALE</div><div class="metric-value" id="tor-total-lat">264 ms</div><div class="metric-delta up">Circuit stable</div></div>
+          <div class="metric-card"><div class="metric-label">CIRCUITS ACTIFS</div><div class="metric-value">3</div><div class="metric-delta">Sur 8 disponibles</div></div>
+          <div class="metric-card"><div class="metric-label">BANDE PASSANTE</div><div class="metric-value" id="tor-bw">1.2 MB/s</div><div class="metric-delta up">↑ normale</div></div>
+        </div>
+        <div class="panel-grid">
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title"><i class="ti ti-route"></i> CIRCUIT ACTIF</div>
+              <button class="btn sm" onclick="newCircuit()">NOUVEAU CIRCUIT</button>
+            </div>
+            <div class="panel-body">
+              <div style="font-size:9px;color:var(--text3);margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border)">VOUS → GUARD → MIDDLE → EXIT → DESTINATION</div>
+              <div class="circuit-item">
+                <div class="circuit-num">YOU</div>
+                <div style="flex:1"><div class="circuit-country">🏠 Votre machine</div><div class="circuit-ip">127.0.0.1:9050 (SOCKS5)</div></div>
+                <span style="font-size:9px;color:var(--green)">LOCAL</span>
+              </div>
+              <div class="circuit-item">
+                <div class="circuit-num">G</div>
+                <div style="flex:1"><div class="circuit-country" id="t-guard">🇩🇪 Allemagne — Guard Node</div><div class="circuit-ip" id="t-gip">185.220.101.47 · Francoforte</div></div>
+                <span style="font-size:9px;color:var(--text2)" id="t-glat">42 ms</span>
+              </div>
+              <div class="circuit-item">
+                <div class="circuit-num">M</div>
+                <div style="flex:1"><div class="circuit-country" id="t-mid">🇳🇱 Pays-Bas — Middle Node</div><div class="circuit-ip" id="t-mip">encrypted · Amsterdam</div></div>
+                <span style="font-size:9px;color:var(--text2)" id="t-mlat">88 ms</span>
+              </div>
+              <div class="circuit-item">
+                <div class="circuit-num">E</div>
+                <div style="flex:1"><div class="circuit-country" id="t-exit">🇸🇪 Suède — Exit Node</div><div class="circuit-ip" id="t-eip">encrypted → 185.100.87.202 · Stockholm</div></div>
+                <span style="font-size:9px;color:var(--text2)" id="t-elat">134 ms</span>
+              </div>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-header"><div class="panel-title"><i class="ti ti-lock"></i> CHIFFREMENT & PROTOCOLE</div></div>
+            <div class="panel-body">
+              <div class="info-row"><span class="info-key">Version Tor</span><span class="info-val">0.4.8.12</span></div>
+              <div class="info-row"><span class="info-key">Algorithme symétrique</span><span class="info-val" style="color:var(--accent)">AES-256-CTR</span></div>
+              <div class="info-row"><span class="info-key">Intégrité</span><span class="info-val">HMAC-SHA256</span></div>
+              <div class="info-row"><span class="info-key">Échange de clés</span><span class="info-val">Curve25519 (nTor)</span></div>
+              <div class="info-row"><span class="info-key">Signature</span><span class="info-val">Ed25519</span></div>
+              <div class="info-row"><span class="info-key">DNS résolution</span><span class="info-val" style="color:var(--green)">Via Tor (pas de fuite)</span></div>
+              <div class="info-row"><span class="info-key">Rotation circuit</span><span class="info-val">Toutes les 10 min</span></div>
+              <div class="info-row"><span class="info-key">Guard persistence</span><span class="info-val">90 jours</span></div>
+            </div>
+          </div>
+          <div class="panel full">
+            <div class="panel-header"><div class="panel-title"><i class="ti ti-network"></i> NŒUDS TOR DISPONIBLES</div></div>
+            <div class="panel-body">
+              <table class="data-table">
+                <thead><tr><th>FINGERPRINT</th><th>PAYS</th><th>IP</th><th>AS</th><th>RÔLE</th><th>BANDE PASSANTE</th><th>STATUT</th></tr></thead>
+                <tbody>
+                  <tr><td style="color:var(--accent);font-size:9px">A3C4...D7E2</td><td>🇩🇪 DE</td><td style="color:var(--text2);font-size:9px">185.220.101.47</td><td style="color:var(--text3)">AS24940</td><td><span class="badge blue">GUARD</span></td><td style="color:var(--text2)">125 MB/s</td><td><span class="badge green">ACTIF</span></td></tr>
+                  <tr><td style="color:var(--accent);font-size:9px">B9F1...2A4C</td><td>🇳🇱 NL</td><td style="color:var(--text2);font-size:9px">104.244.76.13</td><td style="color:var(--text3)">AS1101</td><td><span class="badge gray">MIDDLE</span></td><td style="color:var(--text2)">87 MB/s</td><td><span class="badge green">ACTIF</span></td></tr>
+                  <tr><td style="color:var(--accent);font-size:9px">C2D8...9B3F</td><td>🇸🇪 SE</td><td style="color:var(--text2);font-size:9px">185.100.87.202</td><td style="color:var(--text3)">AS48854</td><td><span class="badge amber">EXIT</span></td><td style="color:var(--text2)">210 MB/s</td><td><span class="badge green">ACTIF</span></td></tr>
+                  <tr><td style="color:var(--accent);font-size:9px">D4E7...6C1A</td><td>🇨🇭 CH</td><td style="color:var(--text2);font-size:9px">178.17.170.23</td><td style="color:var(--text3)">AS13030</td><td><span class="badge gray">MIDDLE</span></td><td style="color:var(--text2)">45 MB/s</td><td><span class="badge green">ACTIF</span></td></tr>
+                  <tr><td style="color:var(--accent);font-size:9px">E6F3...4D9B</td><td>🇫🇷 FR</td><td style="color:var(--text2);font-size:9px">195.154.XX.XX</td><td style="color:var(--text3)">AS12876</td><td><span class="badge gray">MIDDLE</span></td><td style="color:var(--text2)">92 MB/s</td><td><span class="badge amber">LENT</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════════ CRAWLER ═══════════════ -->
+      <div class="view" id="view-crawler">
+        <div class="metrics">
+          <div class="metric-card"><div class="metric-label">JOBS ACTIFS</div><div class="metric-value" style="color:var(--amber)" id="cr-active">8</div><div class="metric-delta">Threads parallèles</div></div>
+          <div class="metric-card"><div class="metric-label">EN FILE</div><div class="metric-value" id="cr-queue">143</div><div class="metric-delta" style="color:var(--text2)">Priorité haute: 12</div></div>
+          <div class="metric-card"><div class="metric-label">TERMINÉS (24H)</div><div class="metric-value" style="color:var(--green)" id="cr-done">2 847</div><div class="metric-delta up">↑ +347 vs hier</div></div>
+          <div class="metric-card"><div class="metric-label">ERREURS (24H)</div><div class="metric-value" style="color:var(--red)">89</div><div class="metric-delta down">↓ 63% timeouts</div></div>
+        </div>
+        <div class="panel-grid">
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title"><i class="ti ti-loader"></i> CRAWLS EN COURS</div>
+              <button class="btn sm danger" onclick="pauseAll()">PAUSE TOUT</button>
+            </div>
+            <div class="panel-body" id="crawler-active-body"></div>
+          </div>
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title"><i class="ti ti-list"></i> FILE D'ATTENTE</div>
+              <button class="btn sm" onclick="addCrawlTarget()">+ AJOUTER</button>
+            </div>
+            <div class="panel-body">
+              <table class="data-table">
+                <thead><tr><th>CIBLE</th><th>PROFONDEUR</th><th>PRIORITÉ</th></tr></thead>
+                <tbody id="crawler-queue-body"></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="panel full">
+            <div class="panel-header"><div class="panel-title"><i class="ti ti-check"></i> DERNIERS CRAWLS TERMINÉS</div></div>
+            <div class="panel-body">
+              <table class="data-table">
+                <thead><tr><th>CIBLE</th><th>PAGES</th><th>ENTITÉS</th><th>DURÉE</th><th>RÉSULTAT</th></tr></thead>
+                <tbody>
+                  <tr><td style="color:var(--accent);font-size:9px">dread[...]6io7l3.onion</td><td style="color:var(--text)">1 234</td><td style="color:var(--text)">47</td><td style="color:var(--text3)">8m 22s</td><td><span class="badge green">SUCCÈS</span></td></tr>
+                  <tr><td style="color:var(--accent);font-size:9px">cryptobbs3xanon.onion</td><td style="color:var(--text)">387</td><td style="color:var(--text)">12</td><td style="color:var(--text3)">3m 41s</td><td><span class="badge green">SUCCÈS</span></td></tr>
+                  <tr><td style="color:var(--accent);font-size:9px">darkmarket2xe3h5.onion</td><td style="color:var(--text)">0</td><td style="color:var(--text)">0</td><td style="color:var(--text3)">30s</td><td><span class="badge red">TIMEOUT</span></td></tr>
+                  <tr><td style="color:var(--accent);font-size:9px">leakbasexxx7anon.onion</td><td style="color:var(--text)">892</td><td style="color:var(--text)">134</td><td style="color:var(--text3)">12m 09s</td><td><span class="badge amber">PARTIEL</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════════ ENTITIES ═══════════════ -->
+      <div class="view" id="view-entities">
+        <div class="metrics" style="grid-template-columns:repeat(5,1fr)">
+          <div class="metric-card"><div class="metric-label">EMAILS</div><div class="metric-value">2 847</div><div class="metric-delta up">↑ +89 auj.</div></div>
+          <div class="metric-card"><div class="metric-label">DOMAINES</div><div class="metric-value">14 203</div><div class="metric-delta up">↑ +234</div></div>
+          <div class="metric-card"><div class="metric-label">HASHES</div><div class="metric-value">98 K</div><div class="metric-delta up">↑ actif</div></div>
+          <div class="metric-card"><div class="metric-label">ADRESSES IP</div><div class="metric-value">6 721</div><div class="metric-delta">Clearnet + onion</div></div>
+          <div class="metric-card"><div class="metric-label">PORTEFEUILLES</div><div class="metric-value">412</div><div class="metric-delta" style="color:var(--amber)">BTC/XMR/ETH</div></div>
+        </div>
+        <div class="panel-grid">
+          <div class="panel">
+            <div class="panel-header"><div class="panel-title"><i class="ti ti-mail"></i> EMAILS RÉCEMMENT DÉTECTÉS</div></div>
+            <div class="panel-body">
+              <div class="entity-card"><div class="entity-icon" style="background:rgba(33,150,243,.1);color:var(--blue)"><i class="ti ti-mail"></i></div><div style="flex:1"><div class="entity-type">EMAIL</div><div class="entity-val">admin@leaked-corp.com</div><div class="entity-source">leakbasexxx7anon92.onion · il y a 2h</div></div><span class="badge red">CRITIQUE</span></div>
+              <div class="entity-card"><div class="entity-icon" style="background:rgba(33,150,243,.1);color:var(--blue)"><i class="ti ti-mail"></i></div><div style="flex:1"><div class="entity-type">EMAIL</div><div class="entity-val">ceo@target-company.fr</div><div class="entity-source">dread[...].onion · il y a 5h</div></div><span class="badge amber">HAUTE</span></div>
+              <div class="entity-card"><div class="entity-icon" style="background:rgba(33,150,243,.1);color:var(--blue)"><i class="ti ti-mail"></i></div><div style="flex:1"><div class="entity-type">EMAIL</div><div class="entity-val">support@example.onion</div><div class="entity-source">cryptobbs[...].onion · il y a 1j</div></div><span class="badge gray">INFO</span></div>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-header"><div class="panel-title"><i class="ti ti-currency-bitcoin"></i> PORTEFEUILLES CRYPTO DÉTECTÉS</div></div>
+            <div class="panel-body">
+              <div class="entity-card"><div class="entity-icon" style="background:rgba(245,166,35,.1);color:var(--amber)"><i class="ti ti-currency-bitcoin"></i></div><div style="flex:1"><div class="entity-type">BITCOIN</div><div class="entity-val" style="font-size:9px">1A1zP1eP5QGefi2DMPTfTL5SLmv7Divf...</div><div class="entity-source">ransomhubleak[...].onion · Rançon: 3.2 BTC</div></div><span class="badge amber">HAUTE</span></div>
+              <div class="entity-card"><div class="entity-icon" style="background:rgba(107,138,146,.1);color:var(--text2)"><i class="ti ti-currency-monero"></i></div><div style="flex:1"><div class="entity-type">MONERO (XMR)</div><div class="entity-val" style="font-size:9px">48edfhg7KJHmnb2qPTf...</div><div class="entity-source">0day7yxaq2[...].onion · Exploit: 50K XMR</div></div><span class="badge red">CRITIQUE</span></div>
+            </div>
+          </div>
+          <div class="panel full">
+            <div class="panel-header"><div class="panel-title"><i class="ti ti-hash"></i> HASHES RÉCENTS (MD5 / SHA256)</div></div>
+            <div class="panel-body">
+              <table class="data-table">
+                <thead><tr><th>TYPE</th><th>HASH</th><th>CONTEXTE</th><th>SOURCE</th><th>DATE</th></tr></thead>
+                <tbody>
+                  <tr><td><span class="badge blue">SHA256</span></td><td style="color:var(--accent);font-size:9px">a3f4e2b1c9d0e7f8a2b3c4d5e6f7a8b9c0...</td><td style="color:var(--text2)">Credentials dump</td><td style="color:var(--text3);font-size:9px">leakbase[...].onion</td><td style="color:var(--text3)">14:22</td></tr>
+                  <tr><td><span class="badge gray">MD5</span></td><td style="color:var(--accent);font-size:9px">d41d8cd98f00b204e9800998ecf8427e</td><td style="color:var(--text2)">Archive ZIP partagée</td><td style="color:var(--text3);font-size:9px">dread[...].onion</td><td style="color:var(--text3)">13:45</td></tr>
+                  <tr><td><span class="badge blue">SHA256</span></td><td style="color:var(--accent);font-size:9px">e3b0c44298fc1c149afbf4c8996fb924...</td><td style="color:var(--text2)">Exécutable malveillant</td><td style="color:var(--text3);font-size:9px">0day7yxaq2[...].onion</td><td style="color:var(--text3)">11:30</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════════ LOGS ═══════════════ -->
+      <div class="view" id="view-logs">
+        <div class="panel full">
+          <div class="panel-header">
+            <div class="panel-title"><i class="ti ti-terminal-2"></i> TERMINAL DE LOGS — TEMPS RÉEL</div>
+            <div style="display:flex;gap:6px;align-items:center">
+              <select id="log-filter" onchange="filterLogs()" style="font-family:var(--mono);font-size:9px;background:var(--bg);border:1px solid var(--border2);color:var(--text2);padding:3px 7px;border-radius:3px">
+                <option value="">TOUS LES NIVEAUX</option>
+                <option value="INFO">INFO</option>
+                <option value="SCAN">SCAN</option>
+                <option value="WARN">WARN</option>
+                <option value="ALERT">ALERT</option>
+              </select>
+              <span class="badge live">LIVE</span>
+              <button class="btn sm" onclick="clearLog('full-log')">EFFACER</button>
+              <button class="btn sm" onclick="exportLogs()">EXPORTER</button>
+            </div>
+          </div>
+          <div class="panel-body"><div class="terminal" id="full-log" style="max-height:calc(100vh - 260px)"></div></div>
+        </div>
+      </div>
+
+      <!-- ═══════════════ REPORT ═══════════════ -->
+      <div class="view" id="view-report">
+        <div class="panel full">
+          <div class="panel-header">
+            <div class="panel-title"><i class="ti ti-file-analytics"></i> RAPPORT OSINT — GÉNÉRATION</div>
+            <button class="btn sm" onclick="generateReport()"><i class="ti ti-download" style="margin-right:4px"></i>GÉNÉRER PDF</button>
+          </div>
+          <div class="panel-body">
+            <div style="font-size:10px;color:var(--text2);margin-bottom:14px">Configurez les sections à inclure dans le rapport d'intelligence.</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px" id="report-config">
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <div style="font-size:9px;letter-spacing:2px;color:var(--text3);margin-bottom:4px">SECTIONS À INCLURE</div>
+                <label style="display:flex;align-items:center;gap:8px;font-size:10px;color:var(--text2);cursor:pointer"><input type="checkbox" checked style="accent-color:var(--accent)"> Résumé exécutif</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:10px;color:var(--text2);cursor:pointer"><input type="checkbox" checked style="accent-color:var(--accent)"> Alertes critiques</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:10px;color:var(--text2);cursor:pointer"><input type="checkbox" checked style="accent-color:var(--accent)"> Sites .onion indexés</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:10px;color:var(--text2);cursor:pointer"><input type="checkbox" checked style="accent-color:var(--accent)"> Entités extraites</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:10px;color:var(--text2);cursor:pointer"><input type="checkbox" style="accent-color:var(--accent)"> Logs bruts (24h)</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:10px;color:var(--text2);cursor:pointer"><input type="checkbox" checked style="accent-color:var(--accent)"> Graphiques d'activité</label>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <div style="font-size:9px;letter-spacing:2px;color:var(--text3);margin-bottom:4px">OPTIONS</div>
+                <div class="info-row"><span class="info-key">Période couverte</span><span class="info-val">7 derniers jours</span></div>
+                <div class="info-row"><span class="info-key">Format de sortie</span><span class="info-val">PDF (confidentiel)</span></div>
+                <div class="info-row"><span class="info-key">Classification</span><span class="info-val" style="color:var(--red)">CONFIDENTIEL</span></div>
+                <div class="info-row"><span class="info-key">Analyste</span><span class="info-val">Opérateur DARKWATCH</span></div>
+                <div class="info-row"><span class="info-key">Chiffrement PDF</span><span class="info-val" style="color:var(--green)">Activé (AES-256)</span></div>
+              </div>
+            </div>
+            <div id="report-preview" style="margin-top:14px;padding:14px;background:var(--bg);border:1px solid var(--border);border-radius:4px;font-size:10px;color:var(--text2);display:none"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════════ SETTINGS ═══════════════ -->
+      <div class="view" id="view-settings">
+        <div class="panel-grid">
+          <div class="panel">
+            <div class="panel-header"><div class="panel-title"><i class="ti ti-route"></i> CONFIGURATION TOR</div></div>
+            <div class="panel-body" style="display:flex;flex-direction:column;gap:8px">
+              <div class="info-row"><span class="info-key">SOCKS5 Host</span><span><input style="font-family:var(--mono);font-size:10px;background:var(--bg);border:1px solid var(--border2);color:var(--text);padding:3px 7px;border-radius:3px;width:120px" value="127.0.0.1"></span></div>
+              <div class="info-row"><span class="info-key">SOCKS5 Port</span><span><input style="font-family:var(--mono);font-size:10px;background:var(--bg);border:1px solid var(--border2);color:var(--text);padding:3px 7px;border-radius:3px;width:80px" value="9050"></span></div>
+              <div class="info-row"><span class="info-key">Control Port</span><span><input style="font-family:var(--mono);font-size:10px;background:var(--bg);border:1px solid var(--border2);color:var(--text);padding:3px 7px;border-radius:3px;width:80px" value="9051"></span></div>
+              <div class="info-row"><span class="info-key">Rotation auto</span><span><label style="display:flex;align-items:center;gap:6px;font-size:10px;color:var(--text);cursor:pointer"><input type="checkbox" checked style="accent-color:var(--accent)"> Toutes les 10 min</label></span></div>
+              <div class="info-row"><span class="info-key">Exit node pays</span><span><input style="font-family:var(--mono);font-size:10px;background:var(--bg);border:1px solid var(--border2);color:var(--text);padding:3px 7px;border-radius:3px;width:120px" placeholder="SE, DE, NL..."></span></div>
+              <button class="btn" style="margin-top:6px;width:100%">APPLIQUER LA CONFIGURATION</button>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-header"><div class="panel-title"><i class="ti ti-bug"></i> CONFIGURATION CRAWLER</div></div>
+            <div class="panel-body" style="display:flex;flex-direction:column;gap:8px">
+              <div class="info-row"><span class="info-key">Threads max</span><span><input type="number" style="font-family:var(--mono);font-size:10px;background:var(--bg);border:1px solid var(--border2);color:var(--text);padding:3px 7px;border-radius:3px;width:60px" value="8"></span></div>
+              <div class="info-row"><span class="info-key">Timeout (s)</span><span><input type="number" style="font-family:var(--mono);font-size:10px;background:var(--bg);border:1px solid var(--border2);color:var(--text);padding:3px 7px;border-radius:3px;width:60px" value="30"></span></div>
+              <div class="info-row"><span class="info-key">Profondeur max</span><span><input type="number" style="font-family:var(--mono);font-size:10px;background:var(--bg);border:1px solid var(--border2);color:var(--text);padding:3px 7px;border-radius:3px;width:60px" value="3"></span></div>
+              <div class="info-row"><span class="info-key">User-Agent</span><span><input style="font-family:var(--mono);font-size:10px;background:var(--bg);border:1px solid var(--border2);color:var(--text);padding:3px 7px;border-radius:3px;width:120px" value="Tor Browser/13.0"></span></div>
+              <div class="info-row"><span class="info-key">JS rendering</span><span><label style="display:flex;align-items:center;gap:6px;font-size:10px;color:var(--text);cursor:pointer"><input type="checkbox" style="accent-color:var(--accent)"> Splash (désactivé)</label></span></div>
+              <button class="btn" style="margin-top:6px;width:100%">SAUVEGARDER</button>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-header"><div class="panel-title"><i class="ti ti-bell"></i> ALERTES & NOTIFICATIONS</div></div>
+            <div class="panel-body" style="display:flex;flex-direction:column;gap:8px">
+              <div class="info-row"><span class="info-key">Email alertes</span><span><input style="font-family:var(--mono);font-size:10px;background:var(--bg);border:1px solid var(--border2);color:var(--text);padding:3px 7px;border-radius:3px;width:140px" placeholder="analyst@org.com"></span></div>
+              <div class="info-row"><span class="info-key">Webhook Slack</span><span><input style="font-family:var(--mono);font-size:10px;background:var(--bg);border:1px solid var(--border2);color:var(--text);padding:3px 7px;border-radius:3px;width:140px" placeholder="https://hooks.slack..."></span></div>
+              <div class="info-row"><span class="info-key">Seuil alerte</span><span><select style="font-family:var(--mono);font-size:9px;background:var(--bg);border:1px solid var(--border2);color:var(--text2);padding:3px 7px;border-radius:3px"><option>CRITIQUE</option><option selected>HAUTE</option><option>MOYENNE</option><option>TOUT</option></select></span></div>
+              <div class="info-row"><span class="info-key">Rapport hebdo</span><span><label style="display:flex;align-items:center;gap:6px;font-size:10px;color:var(--text);cursor:pointer"><input type="checkbox" checked style="accent-color:var(--accent)"> Chaque lundi 08:00</label></span></div>
+              <button class="btn" style="margin-top:6px;width:100%">ENREGISTRER</button>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-header"><div class="panel-title"><i class="ti ti-database"></i> BASE DE DONNÉES</div></div>
+            <div class="panel-body">
+              <div class="info-row"><span class="info-key">PostgreSQL</span><span class="badge green">CONNECTÉ</span></div>
+              <div class="info-row"><span class="info-key">Elasticsearch</span><span class="badge green">CONNECTÉ</span></div>
+              <div class="info-row"><span class="info-key">Redis</span><span class="badge green">CONNECTÉ</span></div>
+              <div class="info-row"><span class="info-key">Taille index</span><span class="info-val">14.2 GB</span></div>
+              <div class="info-row"><span class="info-key">Dernière sauvegarde</span><span class="info-val">il y a 2h</span></div>
+              <button class="btn" style="margin-top:8px;width:100%">SAUVEGARDER MAINTENANT</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- end content-area -->
+  </div><!-- end main -->
+</div><!-- end app -->
+
+<script>
+// ─── DATA ───────────────────────────────────────────────────
+var SITES = [
+  {name:'SecureDrop (NYT)',addr:'sdolvtfhatvsysc6l34d65ymdwxcujausv78am5ajewhirwnlzknswyd.onion',cat:'PRESSE',status:'EN LIGNE',risk:10,last:'il y a 2 min'},
+  {name:'Ahmia Search',addr:'juhanurmihxlp77nkivfoymazhh4p7elitnb3api4tb3xuinsgdqwcyd.onion',cat:'MOTEUR',status:'EN LIGNE',risk:12,last:'il y a 5 min'},
+  {name:'TorProject',addr:'2gzyxa5ihm7nsggfxnu52rck2vv4rvmdlkiu3zzui5du4xyclen53wid.onion',cat:'OFFICIEL',status:'EN LIGNE',risk:5,last:'il y a 1 min'},
+  {name:'Daniel\'s Hosting',addr:'danielas3rtn6r33l.onion',cat:'OFFICIEL',status:'EN LIGNE',risk:20,last:'il y a 8 min'},
+  {name:'Dread Forum',addr:'dreadytofatroptsdj6io7l3xptbet6onoyno2yv7jicoxknyazubrad.onion',cat:'FORUM',status:'EN LIGNE',risk:55,last:'il y a 3 min'},
+  {name:'HiddenWiki v3',addr:'zqktlwiuavvvqqt4ybvgvi7tyo4hjl5xgfuvpdf6otjiycgwqbym2qad.onion',cat:'MOTEUR',status:'EN LIGNE',risk:40,last:'il y a 10 min'},
+  {name:'CryptoBB',addr:'cryptobbwot7rl5bsample.onion',cat:'FORUM',status:'INSTABLE',risk:60,last:'il y a 22 min'},
+  {name:'LeakBase #7',addr:'leakbasexxx7anon92sample.onion',cat:'FUITE',status:'INSTABLE',risk:85,last:'il y a 2h'},
+  {name:'RansomHub Leak',addr:'ransomhubleak3xzdsmpl.onion',cat:'FUITE',status:'EN LIGNE',risk:100,last:'il y a 30 min'},
+  {name:'0day.today Mirror',addr:'0day7yxaq2tzlqojsample.onion',cat:'EXPLOIT',status:'HORS LIGNE',risk:90,last:'il y a 1j'},
+  {name:'BlackSun Blog',addr:'blacksun3anon4xleaksample.onion',cat:'FUITE',status:'EN LIGNE',risk:98,last:'il y a 4h'},
+  {name:'Torch Search',addr:'torchdeedp3tnppfl2n6nkz6e4scxvtv7wdylkajspqvfcfheoyq5sid.onion',cat:'MOTEUR',status:'EN LIGNE',risk:15,last:'il y a 6 min'},
+];
+
+var MONITOR_TARGETS = [
+  {target:'[VOTRE DOMAINE]',type:'Domaine',last:'il y a 2h',total:'14',sources:'3',level:'red'},
+  {target:'[VOTRE EMAIL]',type:'Email',last:'il y a 5j',total:'3',sources:'1',level:'amber'},
+  {target:'data breach',type:'Mot-clé',last:'il y a 4 min',total:'289',sources:'7',level:'red'},
+  {target:'ransomware',type:'Mot-clé',last:'il y a 9 min',total:'1 247',sources:'12',level:'amber'},
+  {target:'zero-day CVE-2024',type:'Mot-clé',last:'il y a 1h',total:'7',sources:'2',level:'blue'},
+  {target:'phishing kit',type:'Mot-clé',last:'il y a 22 min',total:'44',sources:'4',level:'amber'},
+];
+
+var ALERTS_DATA = [
+  {cls:'crit',nameCls:'red',icon:'ti-alert-triangle',name:'FUITE DE DONNÉES DÉTECTÉE',badge:'red',badgeTxt:'CRITIQUE',
+   desc:'Mention de "[TARGET]" détectée sur une base credentials — leakbasexxx7anon92.onion.',
+   meta:'Catégorie: credentials · Hash SHA256: a3f4e2b1... · 14:22:21'},
+  {cls:'high',nameCls:'amber',icon:'ti-virus',name:'RANSOMWARE ACTIF — BlackSun',badge:'amber',badgeTxt:'HAUTE',
+   desc:'Nouveau groupe "BlackSun" publie 12 nouvelles victimes sur ransomhubleak3xzd.onion. Secteurs: finance, santé.',
+   meta:'12 entreprises publiées · Rançon moy.: 3.2 BTC · 14:18:05'},
+  {cls:'med',nameCls:'blue',icon:'ti-key',name:'ZERO-DAY EN VENTE — CVE-2024-XXXX',badge:'blue',badgeTxt:'MOYENNE',
+   desc:'Vente annoncée d\'un exploit pour CVE-2024-XXXX sur 0day7yxaq2tzlqoj.onion. Prix demandé: 50 000 XMR.',
+   meta:'Système affecté: inconnu · Vendeur: ancienneté 2 ans · 13:55:12'},
+];
+
+var CRAWLER_ACTIVE = [
+  {url:'sdolvtfhatvsysc6[...].onion',pct:87,pages:234,speed:'12 pages/min'},
+  {url:'dreadytofatroptsdj6[...].onion',pct:43,pages:891,speed:'8 pages/min'},
+  {url:'cryptobbs3xanon[...].onion',pct:12,pages:45,speed:'5 pages/min'},
+  {url:'danielas3rtn6r33l[...].onion',pct:71,pages:567,speed:'15 pages/min'},
+  {url:'ransomhubleak3xzd[...].onion',pct:55,pages:312,speed:'6 pages/min'},
+];
+
+var CRAWLER_QUEUE = [
+  {url:'leakbasexxx7anon[...].onion',depth:2,prio:'red',prioTxt:'HAUTE'},
+  {url:'0day7yxaq2tzlqoj[...].onion',depth:1,prio:'amber',prioTxt:'MOYENNE'},
+  {url:'cryptobbwot7rl5b[...].onion',depth:3,prio:'gray',prioTxt:'BASSE'},
+  {url:'hiddenwiki3xanon[...].onion',depth:3,prio:'gray',prioTxt:'BASSE'},
+];
+
+var LOG_POOL = [
+  ['INFO','accent','Circuit Tor établi — Guard: 🇩🇪 DE · Middle: 🇳🇱 NL · Exit: 🇸🇪 SE'],
+  ['SCAN','','Crawl démarré sur sdolvtfhatvsysc6l34d65ymdwxcujausv78am5ajewhirwnlzknswyd.onion'],
+  ['WARN','amber','Timeout (30s) sur darkmarket2xe3h5k7anon.onion — nouvelle tentative dans 60s'],
+  ['INFO','','247 nouvelles pages indexées — score qualité: 94% — doublons: 12'],
+  ['ALERT','red','Mention "credentials" détectée sur leakbasexxx7anon92sample.onion — priorité: CRITIQUE'],
+  ['SCAN','','Extraction entités: 8 emails, 3 domaines, 2 adresses IP'],
+  ['INFO','accent','Rotation d\'identité Tor appliquée — nouvel exit node: 185.100.87.202 (SE)'],
+  ['INFO','','Nouveau site découvert: cryptobbs3xanon.onion — ajouté à la file de crawl'],
+  ['ALERT','red','Ransomware "BlackSun" — 12 nouvelles victimes publiées sur ransomhubleak3xzd.onion'],
+  ['SCAN','','Déduplication: 34 pages en double ignorées — index optimisé'],
+  ['WARN','amber','Latence élevée sur le circuit Tor — 412ms (seuil: 400ms)'],
+  ['INFO','','Score de risque recalculé — 3 cibles passées en CRITIQUE'],
+  ['SCAN','','Analyse fingerprint HTTP terminée — serveur: lighttpd/.onion hidden'],
+  ['INFO','accent','Index mis à jour — 14 782 sites actifs — 289 314 pages indexées'],
+  ['WARN','amber','CryptoBB instable — 3 timeouts consécutifs — passage en mode dégradé'],
+];
+
+var logHistory = [];
+var allLogs = [];
+
+// ─── NAV ───────────────────────────────────────────────────
+document.querySelectorAll('.nav-item[data-view]').forEach(function(el){
+  el.addEventListener('click', function(){
+    var view = this.dataset.view;
+    document.querySelectorAll('.nav-item').forEach(function(n){n.classList.remove('active')});
+    this.classList.add('active');
+    document.querySelectorAll('.view').forEach(function(v){v.classList.remove('active')});
+    var target = document.getElementById('view-'+view);
+    if(target) target.classList.add('active');
+    onViewLoad(view);
+  });
+});
+
+function onViewLoad(view){
+  if(view==='sites') renderSites();
+  if(view==='monitor') renderMonitor();
+  if(view==='alerts') renderAlerts();
+  if(view==='crawler') renderCrawler();
+}
+
+// ─── SITES ───────────────────────────────────────────────────
+function renderSites(filter){
+  var f = filter || (document.getElementById('cat-filter')?document.getElementById('cat-filter').value:'');
+  var data = f ? SITES.filter(function(s){return s.cat===f}) : SITES;
+  document.getElementById('sites-count').textContent = data.length+' sites';
+  var html = '';
+  data.forEach(function(s){
+    var sc = s.status==='EN LIGNE'?'green':s.status==='INSTABLE'?'amber':'red';
+    var cc = {PRESSE:'blue',MOTEUR:'blue',OFFICIEL:'green',FORUM:'gray',FUITE:'purple',EXPLOIT:'red',MARCHÉ:'red'}[s.cat]||'gray';
+    var rc = s.risk>79?'var(--red)':s.risk>49?'var(--amber)':'var(--accent)';
+    html+='<tr><td><div class="site-name">'+s.name+'</div></td><td><div class="onion-addr">'+s.addr+'</div></td><td><span class="badge '+cc+'">'+s.cat+'</span></td><td><span class="badge '+sc+'">'+s.status+'</span></td><td><div style="display:flex;align-items:center;gap:6px"><div class="risk-bar"><div class="risk-fill" style="width:'+s.risk+'%;background:'+rc+'"></div></div><span style="font-size:9px;color:var(--text3)">'+s.risk+'</span></div></td><td style="color:var(--text3);font-size:9px">'+s.last+'</td></tr>';
+  });
+  document.getElementById('sites-tbody').innerHTML = html;
+}
+function filterSites(){renderSites(document.getElementById('cat-filter').value)}
+
+// ─── MONITOR ───────────────────────────────────────────────
+function renderMonitor(){
+  var html = '';
+  MONITOR_TARGETS.forEach(function(t){
+    var sc = {red:'badge red',amber:'badge amber',blue:'badge blue'}[t.level];
+    var txt = {red:'ALERTE',amber:'ACTIF',blue:'INFO'}[t.level];
+    html+='<tr><td style="color:var(--accent)">'+t.target+'</td><td><span class="badge gray">'+t.type+'</span></td><td style="color:var(--text2)">'+t.last+'</td><td style="color:var(--text)">'+t.total+'</td><td style="color:var(--text3)">'+t.sources+' sources</td><td><span class="'+sc+'">'+txt+'</span></td></tr>';
+  });
+  document.getElementById('monitor-tbody').innerHTML = html;
+}
+
+// ─── ALERTS ───────────────────────────────────────────────
+function renderAlerts(){
+  var html = '';
+  ALERTS_DATA.forEach(function(a){
+    html+='<div class="alert-card '+a.cls+'"><div class="alert-title"><span class="alert-name '+a.nameCls+'"><i class="ti '+a.icon+'"></i> '+a.name+'</span><span class="badge '+a.badge+'">'+a.badgeTxt+'</span></div><div class="alert-desc">'+a.desc+'</div><div class="alert-meta">'+a.meta+'</div></div>';
+  });
+  document.getElementById('alerts-body').innerHTML = html;
+}
+
+// ─── CRAWLER ───────────────────────────────────────────────
+function renderCrawler(){
+  var html = '';
+  CRAWLER_ACTIVE.forEach(function(j){
+    var rc = j.pct>70?'var(--accent)':j.pct>40?'var(--amber)':'var(--red)';
+    html+='<div class="crawler-job"><div class="crawler-job-header"><span class="crawler-job-url">'+j.url+'</span><span class="crawler-job-pct">'+j.pct+'% · '+j.pages+' pages · '+j.speed+'</span></div><div class="progress-bar"><div class="progress-fill" style="width:'+j.pct+'%;background:'+rc+';transition:width 1s"></div></div></div>';
+  });
+  document.getElementById('crawler-active-body').innerHTML = html;
+  var qhtml = '';
+  CRAWLER_QUEUE.forEach(function(q){
+    qhtml+='<tr><td style="color:var(--accent);font-size:9px">'+q.url+'</td><td style="color:var(--text2)">'+q.depth+'</td><td><span class="badge '+q.prio+'">'+q.prioTxt+'</span></td></tr>';
+  });
+  document.getElementById('crawler-queue-body').innerHTML = qhtml;
+}
+
+// ─── LOGS ───────────────────────────────────────────────────
+function addLogLine(container, level, colorClass, msg){
+  var now = new Date().toTimeString().slice(0,8);
+  var lvlClass = {INFO:'badge green',SCAN:'badge blue',WARN:'badge amber',ALERT:'badge red'}[level]||'badge gray';
+  var div = document.createElement('div'); div.className='log-line'; div.dataset.level=level;
+  div.innerHTML='<span class="log-time">'+now+'</span><span class="log-level"><span class="'+lvlClass+'">'+level+'</span></span><span class="log-msg'+(colorClass?' '+colorClass:'')+'">'+msg+'</span>';
+  if(container){container.appendChild(div);container.scrollTop=container.scrollHeight}
+  allLogs.push({time:now,level:level,msg:msg,el:div.cloneNode(true)});
+}
+
+function clearLog(id){
+  var el = document.getElementById(id);
+  if(el) el.innerHTML='';
+  if(id==='full-log') allLogs=[];
+}
+
+function filterLogs(){
+  var f = document.getElementById('log-filter').value;
+  var container = document.getElementById('full-log');
+  if(!container) return;
+  container.querySelectorAll('.log-line').forEach(function(line){
+    line.style.display = (!f || line.dataset.level===f)?'':'none';
+  });
+}
+
+function exportLogs(){
+  var txt = allLogs.map(function(l){return '['+l.time+'] ['+l.level+'] '+l.msg}).join('\n');
+  var a = document.createElement('a');
+  a.href = 'data:text/plain;charset=utf-8,'+encodeURIComponent(txt);
+  a.download = 'darkwatch-logs-'+new Date().toISOString().slice(0,10)+'.txt';
+  a.click();
+}
+
+// ─── SEARCH ───────────────────────────────────────────────
+function runSearch(){
+  var q = document.getElementById('main-search').value.trim();
+  if(!q) return;
+  document.querySelectorAll('.view').forEach(function(v){v.classList.remove('active')});
+  document.getElementById('view-search').classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(function(n){n.classList.remove('active')});
+  document.querySelector('[data-view="search"]').classList.add('active');
+  document.getElementById('search-query-label').textContent = '"'+q+'"';
+  document.getElementById('result-count-badge').textContent = 'Recherche...';
+  document.getElementById('search-results-body').innerHTML = '<div style="color:var(--text3);font-size:10px;padding:20px 0">Connexion via circuit Tor... interrogation des index...</div>';
+  setTimeout(function(){
+    var results = [
+      {title:'Forum thread: "'+q+'" — Dread',url:'dreadytofatroptsdj6io7l3xptbet6onoyno2yv7jicoxknyazubrad.onion/d/'+q.replace(/\s/g,'-'),snippet:'Discussion active mentionnant "'+q+'" — 847 réponses, 23 utilisateurs actifs, dernière activité il y a 4 min. Thread marqué [URGENT] par les modérateurs.',tags:['FORUM','RÉCENT','HAUTE ACTIVITÉ']},
+      {title:'Leak database — "'+q+'" référencé',url:'leakbasexxx7anon92sample.onion/search?q='+q,snippet:'Base de données de credentials contenant des références à "'+q+'". 3 occurrences exactes, 12 partielles. Données datant de 2024-06.',tags:['FUITE','CRITIQUE','DONNÉES SENSIBLES']},
+      {title:'Index HiddenWiki — "'+q+'"',url:'zqktlwiuavvvqqt4ybvgvi7tyo4hjl5xgfuvpdf6otjiycgwqbym2qad.onion/w/'+q,snippet:'23 liens directs référençant "'+q+'" dans l\'index. Catégories: forums (14), services (6), leaks (3).',tags:['INDEX','LIENS VÉRIFIÉS']},
+      {title:'CryptoBBS — Discussion "'+q+'"',url:'cryptobbs3xanon11sample.onion/topic/'+q.replace(/\s/g,'-'),snippet:'Topic de 156 messages. Premier post il y a 3 jours. Activité croissante, possible intérêt de groupes organisés.',tags:['FORUM','TENDANCE']},
+    ];
+    var html = '<div>';
+    results.forEach(function(r){
+      var tags = r.tags.map(function(t){return '<span class="badge amber">'+t+'</span>'}).join('');
+      html+='<div class="result-item"><div class="result-title">'+r.title+'</div><div class="result-url">'+r.url+'</div><div class="result-snippet">'+r.snippet+'</div><div class="result-meta">'+tags+'</div></div>';
+    });
+    html+='</div>';
+    document.getElementById('search-results-body').innerHTML = html;
+    document.getElementById('result-count-badge').textContent = results.length+' résultats';
+  }, 1400);
+}
+
+function resetAll(){
+  document.getElementById('main-search').value='';
+  document.querySelectorAll('.view').forEach(function(v){v.classList.remove('active')});
+  document.getElementById('view-dashboard').classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(function(n,i){n.classList[i===0?'add':'remove']('active')});
+}
+
+// ─── TOR CIRCUIT ───────────────────────────────────────────
+var TOR_NODES = [
+  {flag:'🇩🇪',country:'Allemagne',role:'Guard Node',ip:'185.220.101.47',city:'Francfort'},
+  {flag:'🇫🇷',country:'France',role:'Guard Node',ip:'195.154.78.12',city:'Paris'},
+  {flag:'🇨🇭',country:'Suisse',role:'Guard Node',ip:'178.17.170.23',city:'Zurich'},
+  {flag:'🇳🇱',country:'Pays-Bas',role:'Middle Node',ip:'104.244.76.13',city:'Amsterdam'},
+  {flag:'🇧🇪',country:'Belgique',role:'Middle Node',ip:'62.210.254.12',city:'Bruxelles'},
+  {flag:'🇦🇹',country:'Autriche',role:'Middle Node',ip:'5.34.180.156',city:'Vienne'},
+  {flag:'🇸🇪',country:'Suède',role:'Exit Node',ip:'185.100.87.202',city:'Stockholm'},
+  {flag:'🇮🇸',country:'Islande',role:'Exit Node',ip:'82.221.128.34',city:'Reykjavik'},
+];
+function newCircuit(){
+  var guard = TOR_NODES.filter(function(n){return n.role==='Guard Node'})[Math.floor(Math.random()*3)];
+  var mid   = TOR_NODES.filter(function(n){return n.role==='Middle Node'})[Math.floor(Math.random()*3)];
+  var exit  = TOR_NODES.filter(function(n){return n.role==='Exit Node'})[Math.floor(Math.random()*2)];
+  var g1=30+Math.round(Math.random()*40), g2=70+Math.round(Math.random()*60), g3=100+Math.round(Math.random()*80);
+  ['d-lat1','t-glat'].forEach(function(id){var e=document.getElementById(id);if(e)e.textContent=g1+' ms'});
+  ['d-lat2','t-mlat'].forEach(function(id){var e=document.getElementById(id);if(e)e.textContent=g2+' ms'});
+  ['d-lat3','t-elat'].forEach(function(id){var e=document.getElementById(id);if(e)e.textContent=g3+' ms'});
+  var total=(g1+g2+g3)+' ms';
+  ['d-total','tor-total-lat'].forEach(function(id){var e=document.getElementById(id);if(e)e.textContent=total});
+  var e=document.getElementById('d-mid');if(e)e.textContent=mid.flag+' '+mid.country+' — Middle Node';
+  var e2=document.getElementById('d-exit');if(e2)e2.textContent=exit.flag+' '+exit.country+' — Exit Node';
+  var e3=document.getElementById('t-mid');if(e3)e3.textContent=mid.flag+' '+mid.country+' — Middle Node';
+  var e4=document.getElementById('t-exit');if(e4)e4.textContent=exit.flag+' '+exit.country+' — Exit Node';
+  var e5=document.getElementById('tor-exit-ip');if(e5)e5.textContent=exit.ip;
+  addLogLine(document.getElementById('dash-log'),'INFO','accent','Nouveau circuit Tor — Guard: '+guard.flag+' '+guard.country+' · Exit: '+exit.flag+' '+exit.country+' · Latence: '+total);
+  addLogLine(document.getElementById('full-log'),'INFO','accent','Nouveau circuit Tor — Guard: '+guard.flag+' '+guard.country+' · Exit: '+exit.flag+' '+exit.country+' · Latence: '+total);
+}
+
+// ─── MISC ───────────────────────────────────────────────────
+function addKeyword(){
+  var kw = prompt('Nouveau mot-clé à surveiller :');
+  if(!kw||!kw.trim()) return;
+  var span = document.createElement('span'); span.className='tag-pill';
+  span.innerHTML='<i class="ti ti-eye"></i> '+kw.trim();
+  document.getElementById('keyword-container').appendChild(span);
+}
+function addMonitorTarget(){alert('Fonctionnalité disponible dans la version complète.')}
+function addCrawlTarget(){alert('Fonctionnalité disponible dans la version complète.')}
+function pauseAll(){alert('Tous les crawls mis en pause.')}
+function markAllRead(){ALERTS_DATA=[];renderAlerts();document.querySelector('[data-view="alerts"] .nav-badge').style.display='none'}
+function generateReport(){
+  var prev = document.getElementById('report-preview');
+  prev.style.display='block';
+  prev.innerHTML='<span style="color:var(--accent)">✔ Rapport généré — </span><span style="color:var(--text2)">Fonctionnalité disponible dans la version backend complète. En mode démo, le rapport serait exporté en PDF chiffré AES-256 avec toutes les sections sélectionnées.</span>';
+}
+
+// ─── LIVE LOG TICKER ────────────────────────────────────────
+var logIdx = 0;
+function tickLog(){
+  var entry = LOG_POOL[logIdx % LOG_POOL.length];
+  addLogLine(document.getElementById('dash-log'), entry[0], entry[1], entry[2]);
+  addLogLine(document.getElementById('full-log'), entry[0], entry[1], entry[2]);
+  logIdx++;
+}
+// Seed initial logs
+for(var i=0;i<8;i++){ (function(ii){setTimeout(function(){tickLog()},ii*120)})(i) }
+setInterval(tickLog, 4200);
+
+// ─── METRIC TICKER ─────────────────────────────────────────
+setInterval(function(){
+  var m1=document.getElementById('m1'); if(m1) m1.textContent=(14782+Math.round(Math.random()*3)).toLocaleString('fr');
+  var m2=document.getElementById('m2'); if(m2) m2.textContent=(289+Math.round(Math.random()))+' K';
+  var bw=document.getElementById('tor-bw'); if(bw) bw.textContent=(0.8+Math.random()*0.8).toFixed(1)+' MB/s';
+}, 5000);
+
+// ─── CRAWLER PROGRESS TICK ──────────────────────────────────
+setInterval(function(){
+  CRAWLER_ACTIVE.forEach(function(j){j.pct=Math.min(100,(j.pct+Math.round(Math.random()*3)));j.pages+=Math.round(Math.random()*8)});
+  if(document.getElementById('view-crawler').classList.contains('active')) renderCrawler();
+}, 3000);
+
+// ─── ENTER KEY SEARCH ───────────────────────────────────────
+document.getElementById('main-search').addEventListener('keydown',function(e){if(e.key==='Enter') runSearch()});
+
+// ─── INIT ───────────────────────────────────────────────────
+renderSites();
+renderMonitor();
+renderAlerts();
+renderCrawler();
+</script>
+</body>
+</html>
